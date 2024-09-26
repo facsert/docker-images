@@ -20,8 +20,8 @@ jobs:
         run: |
           mkdir -p docker_images
           while IFS= read -r image; do
-            [[ -z "$image" ]] && continue
-            [[ "$image" == *"#"* ]] && continue
+            [[ -z "$image" ]] && continue  # Skip empty lines
+            [[ "$image" == *"#"* ]] && continue  # Skip comments
             echo "Pulling Docker image: $image"
             docker pull $image
             image_name=$(echo $image | sed 's/[:\/]/_/g')  # Replace ':' and '/' with '_'
@@ -42,17 +42,13 @@ jobs:
           release_name: "Docker Images Release v1.0.${{ github.run_number }}"
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Release
+      # Step 5: Upload the Docker images archive to the release
+      - name: Upload Docker images to Release
         uses: softprops/action-gh-release@v2
         with:
           files: docker_images.tar.gz
-
-      # Step 5: Upload the compressed Docker images to the release
-      # - name: Upload Docker images to Release
-      #   uses: actions/upload-release-asset@v1
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ./docker_images.tar.gz
-      #     asset_name: docker_images.tar.gz
-      #     asset_content_type: application/gzip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
