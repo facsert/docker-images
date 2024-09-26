@@ -1,4 +1,4 @@
-name: Download Docker Images and Release
+name: Download Docker Images and Upload Artifacts
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  download_and_release:
+  download_and_upload:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,22 +33,9 @@ jobs:
         run: |
           tar -czvf docker_images.tar.gz -C docker_images .
 
-      # Step 4: Create a release in GitHub
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      # Step 4: Upload the compressed Docker images as an artifact
+      - name: Upload Docker images as artifact
+        uses: actions/upload-artifact@v3
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          release_name: "Docker Images Release v1.0.${{ github.run_number }}"
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Step 5: Upload the Docker images archive to the release
-      - name: Upload Docker images to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: docker_images.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: docker_images
+          path: docker_images.tar.gz
