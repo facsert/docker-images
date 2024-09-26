@@ -30,12 +30,6 @@ jobs:
             image_name=$(echo $image | sed 's/[:\/]/_/g')  # 将 ':' 和 '/' 替换为 '_'
             docker save $image -o docker_images/$image_name.tar
           done < images.txt
-
-      - name: Generate release tag
-        id: tag
-        run: |
-          tag_name="release-$(date +'%Y%m%d%H%M%S')-${GITHUB_SHA::8}"
-          echo "::set-output name=tag_name::$tag_name"
     
       - name: Create Release
         id: create_release
@@ -54,6 +48,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./images
+          asset_path: ./docker_images
           asset_name: docker-images.tar
           asset_content_type: application/x-tar
