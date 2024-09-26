@@ -30,7 +30,11 @@ jobs:
             image_name=$(echo $image | sed 's/[:\/]/_/g')  # 将 ':' 和 '/' 替换为 '_'
             docker save $image -o docker_images/$image_name.tar
           done < images.txt
-    
+
+      - name: Compress Docker images
+        run: |
+          tar -czvf docker_images.tar.gz -C docker_images .
+  
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -42,12 +46,18 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release Assets
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Upload Release Assets
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./docker_images
+      #     asset_name: docker-images.tar
+      #     asset_content_type: application/x-tar
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./docker_images
-          asset_name: docker-images.tar
-          asset_content_type: application/x-tar
+          files: docker_images.tar.gz
+
