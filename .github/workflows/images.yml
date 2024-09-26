@@ -31,6 +31,12 @@ jobs:
             docker save $image -o docker_images/$image_name.tar
           done < images.txt
 
+      - name: Generate release tag
+        id: tag
+        run: |
+          tag_name="release-$(date +'%Y%m%d%H%M%S')-${GITHUB_SHA::8}"
+          echo "::set-output name=tag_name::$tag_name"
+    
       # Step 3: Create a compressed archive of the saved Docker images
       - name: Compress Docker images
         run: |
