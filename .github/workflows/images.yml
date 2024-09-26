@@ -1,5 +1,6 @@
 name: Download Docker Images and Release
 
+# 当推送代码到 main 分支时或者手动触发时运行
 on:
   push:
     branches:
@@ -19,12 +20,12 @@ jobs:
       - name: Pull Docker images
         run: |
           mkdir -p docker_images
-          while IFS= read -r image; do
+          while IFS= read -r image | [[ -n "$image" ]]; do
             [[ -z "$image" ]] && continue  # Skip empty lines
             [[ "$image" == *"#"* ]] && continue  # Skip comments
             echo "Pulling Docker image: $image"
             docker pull $image
-            image_name=$(echo $image | sed 's/[:\/]/_/g')  # Replace ':' and '/' with '_'
+            image_name=$(echo $image | sed 's/[:\/]/_/g')  # 将 ':' 和 '/' 替换为 '_'
             docker save $image -o docker_images/$image_name.tar
           done < images.txt
 
@@ -37,18 +38,20 @@ jobs:
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          release_name: "Docker Images Release v1.0.${{ github.run_number }}"
+          tag_name: ${{ github.ref }}-${{ github.sha }}
+          release_name: Release ${{ github.ref }}-${{ github.sha }}
           draft: false
           prerelease: false
+  
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Step 5: Upload the Docker images archive to the release
-      - name: Upload Docker images to Release
-        uses: softprops/action-gh-release@v2
         with:
-          files: docker_images.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./images
+          asset_name: docker-images.tar
+          asset_content_type: application/x-tar
