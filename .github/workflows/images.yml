@@ -30,10 +30,7 @@ jobs:
             image_name=$(echo $image | sed 's/[:\/]/_/g')  # 将 ':' 和 '/' 替换为 '_'
             docker save $image -o docker_images/$image_name.tar
           done < images.txt
-
-      - name: Compress Docker images
-        run: |
-          tar -czvf docker_images.tar.gz -C docker_images .
+          tar -czvf docker_images.tar.gz -C docker_images
   
       - name: Create Release
         id: create_release
