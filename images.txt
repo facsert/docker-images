@@ -1,1 +1,1 @@
-python
+postgres:latest
