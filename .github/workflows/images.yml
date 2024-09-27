@@ -22,7 +22,7 @@ jobs:
       - name: Pull Docker images
         run: |
           mkdir -p docker_images
-          while IFS= read -r image | [[ -n "$image" ]]; do
+          while IFS= read -r image ; do
             [[ -z "$image" ]] && continue  # Skip empty lines
             [[ "$image" == *"#"* ]] && continue  # Skip comments
             echo "Pulling Docker image: $image"
